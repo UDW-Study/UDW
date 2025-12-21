@@ -53,3 +53,18 @@
 - 게임 실행 도중 값을 바꾸고 싶다면 Eject 버튼을 눌러야함
 - **추후에 개발 해보면서 직접 체험 해볼 것**
 - [플레이 및 시뮬레이션](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/playing-and-simulating-in-unreal-engine)
+
+
+## 모듈
+
+- 현대 언어의 모듈 시스템을 언리얼의 방식으로 구현한듯함.
+- C#을 빌드 툴로 사용하는 것 같고, 정확히 내부 원리가 어떻게 돼있는지는 알려주지 않았음. (나중에 공부해보기)
+- `[모듈이름].Target.cs`파일, `[모듈이름]`폴더, 그 폴더에 `[모듈이름].Build.cs`, `[모듈이름]Module.cpp` 을 생성해 프로젝트에 새로운 모듈 추가가능. `uproject`파일도 수정해함
+- `[모듈이름].Build.cs`파일의 `PublicDependencyModuleNames.AddRange({...})` 부분을 수정하여 종속성을 추가할 수 있음
+
+## 로그
+- UE_LOG로 로깅 가능
+- `UE_LOG(LogTemp, Warning, TEXT("Hello World"));`
+- 로그 카테고리 / 로그 레벨 설정 가능
+- 자체 로그 카테고리 정의 가능
+- `UE_LOGFMT` 라는 최신 함수를 사용해 현대식 포메팅으로 로깅가능
