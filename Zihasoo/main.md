@@ -90,3 +90,25 @@
 - GameInstance: 게임 전체에서 1개의 객체를 유지할 수 있는 싱글톤 클래스. 프로젝트 설정에서 어떤 클래스를 게임 인스턴스로 정할지 설정 가능
 - GameMode: 게임 전체의 메니저 같은 클래스. 게임의 룰이나 플레이어 컨트롤 방식, UI 등 플레이와 관련된 모든 것들을 관리함.
 - 언리얼은 게임을 돌리기 위한 시스템이 이미 구조화되어 있고 이를 잘 따르기만 하면 매우 빠르게 개발이 가능함
+
+## Actor
+- `ConstructorHelpers`의 몇몇 클래스를 이용하면 에셋 경로로부터 에셋을 로드하는것이 가능함
+
+```c++
+// 예시
+ConstructorHelpers::FClassFinder<T> FindClass(TEXT("경로"));
+if (FindClass.Succeeded())
+{
+	DoSomething(FindObj.Class);
+}
+ConstructorHelpers::FObjectFinder<T> FindObj(TEXT("경로"));
+if (FindObj.Succeeded())
+{
+	DoSomething(FindObj.Object);
+}
+```
+- 블루프린트를 로드할때는 경로 맨 뒤에 `_C`를 붙여야함
+- GetActor 함수 시리즈가 있음. 클래스, 태그 등 다양한 기준으로 월드에 있는 오브젝트를 가져올 수 있음
+- `UGameplayStatics::GetActorOfClass(GetWorld(), AR1Actor::StaticClass());`
+- `UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("R1ActorTag"), TArray<AActor*>());`
+- `TArray`의 `Empty()`함수는 비어있는지 확인하는 함수가 아니라 clear처럼 내용물을 비우는 함수임. 비어있는지 확인하고 싶다면 `Num()`함수를 사용해 요소의 개수를 체크할 것
