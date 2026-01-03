@@ -139,3 +139,22 @@ if (FindObj.Succeeded())
     - Async Load/Unload 하는 기능을 수행함
 - [Data Asset과 Asset Manager](https://redchiken.tistory.com/358)
 - [Unreal Docs: Data Assets](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/data-assets-in-unreal-engine)
+
+## 애니메이션
+- 애니메이션 블루프린트
+    - 애니메이션의 주인이 되는 폰의 정보들을 감시하고 있다가, 특정 조건이 맞춰지면 애니메이션을 실행하는 형태임
+    - AnimInstance를 상속받아서 C++에서 코드로 어느 정도 짜놓고, 다시 블루프린트로 상속받아서 사용해도 됨
+    - State Machine으로 그래프를 캡슐화해서 사용가능. Cached Pose 기능으로 특정 SM에서 나온 결과물을 다른데서 사용 가능 (로지심의 터널 느낌)
+    - State Alias로 여러 State로부터 트렌지션되는 상황을 한 번에 처리가능 (유니티 Any State 상위호환)
+- Additive Animation
+    - 원래의 애니메이션에 더해주는 애니메이션 (단독 실행 안됨)
+    - 상, 하체를 분리하기 위해서 사용하는 Layered Animation보다 좀 더 자연스러운 연출 가능
+- Blend Space
+    - 여러 포인트에서 그래프를 따라 애니메이션을 지정하는 에셋 (이 포인트를 sample 이라고 함)
+    - 전체 애니메이션은 각 축의 입력 값을 바탕으로 그래프에 있는 포인트 사이의 블렌딩을 통해 계산됨
+    - `IDLE - 걷기 - 달리기` 같은 변수에 따른 애니메이션 전환을 이 에셋 하나로 매우 간단하게 표현 가능함
+- 리타게팅
+    - 비슷한 뼈 구조를 가졌지만 비율이 다른 캐릭터들의 애니메이션을 재사용하기 위한 시스템
+    - 양쪽 캐릭터에서 같은 역할을 하는 뼈를 하나하나 매핑한 후에 애니메이션을 변환할 수 있음 (한 번만 매핑해놓으면 됨)
+- 몽타주
+    - 여러 애니메이션 시퀀스를 하나의 에셋으로 결합시키는 기능 (콤보 공격 구현에 유용함)
