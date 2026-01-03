@@ -14,6 +14,7 @@
     - B + Left Click: 브랜치 생성
     - S + Left Click: 시퀀스 생성
     - F9: 중단점 생성
+    - 구역 선택 + C: 주석 만들기
 
 * 머티리얼 그래프:
     - 숫자 1 ~ 4 + Left Click: float 값 생성
@@ -111,3 +112,30 @@ if (FindObj.Succeeded())
 - `UGameplayStatics::GetActorOfClass(GetWorld(), AR1Actor::StaticClass());`
 - `UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("R1ActorTag"), TArray<AActor*>());`
 - `TArray`의 `Empty()`함수는 비어있는지 확인하는 함수가 아니라 clear처럼 내용물을 비우는 함수임. 비어있는지 확인하고 싶다면 `Num()`함수를 사용해 요소의 개수를 체크할 것
+
+## Pawn & Character
+- Pawn은 Actor를 상속받은 클래스임. 빙의하여 조종하는 것이 가능함
+- Character는 Pawn을 상속받았고 Mesh, Capsule, Character Movement를 기본으로 가지고 있음.
+- 움직임은 Pawn에 바로 넣어주고, 회전은 Player Controller에 넣는것이 일반적임. 이때 저장된 회전을 여러 설정을 통해 Pawn에 다르게 적용할 수 있음. (캐릭터에만 적용 / 카메라에만 적용 등등)
+- GameplayTags라는 기능으로 에셋 관리를 편리하게 할 수 있음
+
+## 컴포넌트
+- 액터 컴포넌트는 움직임, 인벤토리, 어트리뷰트 관리 및 기타 비물리적 개념과 같은 추상적인 동작에 사용. 트랜스폼 없음
+- 씬 컴포넌트 (액터 컴포넌트의 자손)는 지오메트리 표현이 필요하지 않은 위치 기반 동작을 지원함. (예: 스프링 암, 카메라, 물리적 힘, 컨스트레인트(물리적 오브젝트는 해당 없음), 오디오 등)
+- 프리미티브 컴포넌트 (씬 컴포넌트의 자손)는 지오메트리 표현이 있는 씬 컴포넌트로, 주로 비주얼 요소 렌더링이나 물리적 오브젝트와의 충돌 또는 오버랩에 사용됨. (예: 박스, 캡슐, 구체 콜리전 볼륨, 스태틱/스켈레탈 메시, 스프라이트 또는 빌보드, 파티클 시스템)
+
+## Asset Manager
+- Data Asset:
+    - 특정 시스템과 관련된 데이터를 해당 클래스의 인스턴스에 저장하는 자산
+    - 원하는 형식의 데이터 저장용 클래스를 구현하면, 해당 클래스를 베이스로 Data Asset을 생성하고, 내용 설정 및 저장 가능 (Dto느낌)
+    - UDataAsset을 상속받으면 됨. UMyDataAsset -> BP_MyDataAsset -> Data Asset 가능
+- Primary Data Asset
+    - `GetPrimaryAssetId`함수를 구현하는 Data Asset
+    - 자산 번들 지원을 제공하여, 에셋 메니저에서 수동으로 Load/Unload 가능
+- Asset Manager
+    - Primary Asset의 탐색 및 로드를 관리하는 싱글톤 클래스
+- Streamable Manager
+    - Primary Data Asset에 포함되어있는 구조체
+    - Async Load/Unload 하는 기능을 수행함
+- [Data Asset과 Asset Manager](https://redchiken.tistory.com/358)
+- [Unreal Docs: Data Assets](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/data-assets-in-unreal-engine)
