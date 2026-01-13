@@ -7,6 +7,7 @@
     - Ctrl + Alt + F11: 라이브 코딩 빌드
     - Alt + S: 시뮬레이트
     - Edit -> Project Settings -> GameInstance 검색: 프로젝트의 게임인스턴스 설정 가능
+    - P: 네비게이션 범위 시각화됨
 
 * 블루프린트:
     - Ctrl + Variable D&D: Get
@@ -15,6 +16,7 @@
     - S + Left Click: 시퀀스 생성
     - F9: 중단점 생성
     - 구역 선택 + C: 주석 만들기
+    - Reroute: 링크 점프
 
 * 머티리얼 그래프:
     - 숫자 1 ~ 4 + Left Click: float 값 생성
@@ -158,3 +160,81 @@ if (FindObj.Succeeded())
     - 양쪽 캐릭터에서 같은 역할을 하는 뼈를 하나하나 매핑한 후에 애니메이션을 변환할 수 있음 (한 번만 매핑해놓으면 됨)
 - 몽타주
     - 여러 애니메이션 시퀀스를 하나의 에셋으로 결합시키는 기능 (콤보 공격 구현에 유용함)
+- Animation Notify
+    - 애니메이션 시퀀스에 동기화된 이벤트를 생성할 수 있게 해주는 기능
+    - AnimNotify를 상속받아서 Custom Notify Event를 생성할 수 있음. 필요한 정보를 실을 수 있어서 태그를 멤버로 전달하여 무슨 이벤트인지 알려주는 것이 정석임
+
+## 충돌
+
+#### Collision Responses:
+- Block
+    - OnHit 이벤트가 호출되며, 물리적으로 서로가 이동하는 경로를 막음
+    - 두 물체 모두 Block으로 설정되어야 함
+- Overlap
+    - 두 물체는 서로를 막지도 않고 무시하지도 않으며 서로 겹침. OnBeginOverlap 이벤트와 OnEndOverlap 이벤트가 호출됨
+    - 두 물체 중 하나라도 GenerateOverlapEvents 속성이 true로 설정돼 있지 않으면 이 이벤트들은 호출되지 않음
+- Ignore
+    - 두 물체에 대해 아무런 이벤트도 호출되지 않으며, 두 물체는 서로가 없는 것처럼 동작하며 서로 겹침.
+    - 둘 중 하나라도 Ignore로 설정돼있으면 서로 무시함
+
+#### Collision Enabled:
+- No Collision
+    - 충돌 사용 안함
+    - 움직이는 오브젝트에 최고의 퍼포먼스
+- Query Only
+    - 공간 쿼리(레이캐스트, 스윕, 오버랩)에만 사용됨
+    - 피지컬 시뮬레이션이 필요 없는 오브젝트와 캐릭터 무브먼트에 유용함
+- Physics Only
+    - 피직스 시뮬레이션(리지드 바디, 컨스트레인트) 전용
+    - 본 단위 탐지가 필요 없는 캐릭터의 이차 시뮬레이션 동작에 유용함
+- Collision Enabled
+    - 공간 쿼리(레이캐스트, 스윕, 오버랩)와 시뮬레이션(리지드 바디, 컨스트레인트)에 모두 사용 가능
+
+#### Channel & Preset
+- Object Channel
+    - 새로운 오브젝트 타입을 정의함
+    - 생성시 모든 Preset들에서 Collision Response를 맞춰줘야함
+    - Project/Config/DefaultEngine.ini 파일에 저장됨
+    - C++에서 사용할때는 이름이 아니라 ini파일에 저장된 채널 번호로 접근해야 함
+- Trace Channel
+    - Object Channel과 비슷한데 개념적인 상황에 사용함
+    - Sphere Trace By Channel에 사용됨 (유니티 BoxCast랑 비슷)
+    - 위의 함수 사용시에 상대가 Overlap이면 탐지 안됨. Block이어야 함
+- Preset
+    - 다양한 Object와 Trace에 대해 Collision Responses를 미리 정의해놓은 것
+
+## AI
+- BlackBoard
+    - Behavior Tree가 결정을 내리는데 사용하는 정보(상태)를 저장함
+    - Key - Value 구조로 되어있음
+    - BlackBoard의 정보를 관찰하고 있다가 변경되는 순간 실행되도록 관찰자 패턴으로 만드는 것이 가능
+
+- BlackBoard Decorator 관련 프로퍼티
+    | Notify Observer | |
+    |---------------------------|----------------------------|
+    | On Result Change | 조건이 변경될 때만 재평가 |
+    | On Value Change | 관찰된 블랙보드 키가 변경될 때 재평가 |
+
+    | Observer Aborts |    |
+    |---|---|
+    | None | 아무것도 중단하지 않음  |
+    | Self | 자신 및 이 노드 아래에서 실행 중인 모든 서브트리를 중단  |
+    | Lower Priority | 이 노드의 오른쪽에 있는 모든 노드를 중단  |
+    | Both | 자신, 이 노드 아래에서 실행 중인 모든 서브트리, 이 노드의 오른쪽에 있는 모든 노드를 중단 |
+
+- Behavior Tree
+    | 노드 | 설명 |
+    |---|---|
+    | Task | 실행할 수 있는 액션을 나타내며, 출력 연결을 갖지 않음 |
+    | Service | Composite 노드에 부착되며, 자신의 분기가 실행되는 동안에 한해 정의된 주기로 실행됨 |
+    | Decorator | 다른 노드에 부착되어 트리의 분기나 단일 노드의 실행 여부를 결정함 |
+    | Composite | 자손들의 실행 흐름을 결정함 |
+
+- Composite 노드 종류
+    | 노드 | 설명 |
+    |---|---|
+    | Selector | 자식들 중에 하나라도 성공하면 성공으로 처리되고 실행 중단 |
+    | Sequence | 자식들 중에 하나라도 실패하면 실패로 처리되고 실행 중단 |
+    | Simple Parallel | - Main Task와 Background Branch 2개의 분기만 연결 가능<br>- Main Task가 실행되는 동안 Background Branch가 병렬 실행됨<br>- Main Task에는 Task 노드만 할당 가능 |
+
+## UI
