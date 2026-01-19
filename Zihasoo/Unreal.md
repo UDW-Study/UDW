@@ -238,3 +238,18 @@ if (FindObj.Succeeded())
     | Simple Parallel | - Main Task와 Background Branch 2개의 분기만 연결 가능<br>- Main Task가 실행되는 동안 Background Branch가 병렬 실행됨<br>- Main Task에는 Task 노드만 할당 가능 |
 
 ## UI
+#### `OnDragOver` vs `NativeOnDragOver`
+- 전자는 블루프린트용 래퍼 함수, Native는 C++용
+- 래퍼 함수는 인자가 좀 더 단순하고 C++에서 오버라이드 할 수 없음 (가상함수가 아님)
+- `NativeOnDragOver`내부에서 `OnDragOver`를 호출하는 형태로 되어있음
+- `UUserWidget`의 API 대부분이 Native와 래퍼 함수의 세트로 구성됨
+
+#### 드래그 관련 함수들
+
+|      함수      |          설명         |
+|:--------------:|:---------------------:|
+| OnDragDetected | 드래그 시작           |
+| OnDragEnter    | 위젯에 처음 들어올 때 |
+| OnDragOver     | 위에 있는 동안 계속   |
+| OnDragLeave    | 벗어날 때             |
+| OnDrop         | 드롭 시               |
