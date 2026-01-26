@@ -238,7 +238,25 @@ if (FindObj.Succeeded())
     | Simple Parallel | - Main Task와 Background Branch 2개의 분기만 연결 가능<br>- Main Task가 실행되는 동안 Background Branch가 병렬 실행됨<br>- Main Task에는 Task 노드만 할당 가능 |
 
 ## UI
-#### `OnDragOver` vs `NativeOnDragOver`
+
+#### UI 관련 클래스
+- UUserWidget
+    - 모든 UI의 부모가 되는 클래스
+    - C++로 UI를 만들 때 해당 클래스를 상속받으면 됨
+
+- UWidgetComponent
+    - UI를 컴포넌트로 배치하고 싶을때 사용하는 클래스
+    - 해당 컴포넌트의 `WidgetClass`를 원하는 UI로 설정해주면 해당 UI가 배치됨
+    - `WidgetSpace`를 `World`또는 `Screen`으로 설정 가능
+    - `DrawAtDesiredSize`를 켜주면 디자인한 크기대로 랜더링됨
+
+- Widget Blueprint
+    - UI에서 사용하는 블루프린트
+    - 기본 부모는 `UUserWidget`
+    - Designer 탭에서 UI를 편집하고 Graph 탭에서는 일반적인 블루프린트 작성
+    - C++에서 `UPROPERTY(meta=(BindWidget))` 로 해놓으면, 해당 멤버 변수는 이름이 정확히 같은 UI요소와 연결됨 (없으면 오류남)
+
+##### `OnDragOver` vs `NativeOnDragOver`
 - 전자는 블루프린트용 래퍼 함수, Native는 C++용
 - 래퍼 함수는 인자가 좀 더 단순하고 C++에서 오버라이드 할 수 없음 (가상함수가 아님)
 - `NativeOnDragOver`내부에서 `OnDragOver`를 호출하는 형태로 되어있음
@@ -247,7 +265,7 @@ if (FindObj.Succeeded())
 #### 드래그 관련 함수들
 
 |      함수      |          설명         |
-|:--------------:|:---------------------:|
+|--------------|---------------------|
 | OnDragDetected | 드래그 시작           |
 | OnDragEnter    | 위젯에 처음 들어올 때 |
 | OnDragOver     | 위에 있는 동안 계속   |
