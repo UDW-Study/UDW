@@ -239,22 +239,21 @@ if (FindObj.Succeeded())
 
 ## UI
 
-#### UI 관련 클래스
-- UUserWidget
-    - 모든 UI의 부모가 되는 클래스
-    - C++로 UI를 만들 때 해당 클래스를 상속받으면 됨
+#### `UUserWidget`
+- 모든 UI의 부모가 되는 클래스
+- C++로 UI를 만들 때 해당 클래스를 상속받으면 됨
 
-- UWidgetComponent
-    - UI를 컴포넌트로 배치하고 싶을때 사용하는 클래스
-    - 해당 컴포넌트의 `WidgetClass`를 원하는 UI로 설정해주면 해당 UI가 배치됨
-    - `WidgetSpace`를 `World`또는 `Screen`으로 설정 가능
-    - `DrawAtDesiredSize`를 켜주면 디자인한 크기대로 랜더링됨
+#### `UWidgetComponent`
+- UI를 컴포넌트로 배치하고 싶을때 사용하는 클래스
+- 해당 컴포넌트의 `WidgetClass`를 원하는 UI로 설정해주면 해당 UI가 배치됨
+- `WidgetSpace`를 `World`또는 `Screen`으로 설정 가능
+- `DrawAtDesiredSize`를 켜주면 디자인한 크기대로 랜더링됨
 
-- Widget Blueprint
-    - UI에서 사용하는 블루프린트
-    - 기본 부모는 `UUserWidget`
-    - Designer 탭에서 UI를 편집하고 Graph 탭에서는 일반적인 블루프린트 작성
-    - C++에서 `UPROPERTY(meta=(BindWidget))` 로 해놓으면, 해당 멤버 변수는 이름이 정확히 같은 UI요소와 연결됨 (없으면 오류남)
+#### Widget Blueprint
+- UI에서 사용하는 블루프린트
+- 기본 부모는 `UUserWidget`
+- Designer 탭에서 UI를 편집하고 Graph 탭에서는 일반적인 블루프린트 작성
+- C++에서 `UPROPERTY(meta=(BindWidget))` 로 해놓으면, 해당 멤버 변수는 이름이 정확히 같은 UI요소와 연결됨 (없으면 오류남)
 
 ##### `OnDragOver` vs `NativeOnDragOver`
 - 전자는 블루프린트용 래퍼 함수, Native는 C++용
@@ -271,3 +270,84 @@ if (FindObj.Succeeded())
 | OnDragOver     | 위에 있는 동안 계속   |
 | OnDragLeave    | 벗어날 때             |
 | OnDrop         | 드롭 시               |
+
+## GAS
+
+#### `UAbilitySystemComponent` (ASC)
+- GAS 중앙 관리자
+- 캐릭터에 하나씩 부착하여 사용
+
+#### `IAbilitySystemInterface`
+- 액터가 GAS를 사용하게 하려면 해당 인터페이스를 구현하고 `GetAbilitySystemComponent()` 함수를 오버라이드 해야 함.
+- 해당 함수는 단순히 ASC를 리턴하는 역할
+- 플레이어의 경우에는 `PlayerState`에 실제 ASC를 넣어놓고, 캐릭터에는 참조를 넣어놨다가 위의 함수에서 리턴하도록 설계함
+- PlayerState는 서버에서 클라로 주기적으로 배포되는 액터이고, 캐릭터가 소멸되고 리스폰될때도 살아있어서 주로 사용한다고 함
+
+#### Gameplay Attributes
+- 캐릭터의 스탯
+- 모든 속성은 `FGameplayAttributeData` 클래스를 사용해야 함
+- BaseValue와 CurrentValue가 있음
+- BaseValue는 기본값, CurrentValue는 현재 활성화된 모든 이펙트를 적용한 값
+- 몇몇 매크로를 사용하면 getter와 setter를 자동 생성할 수 있음
+- 모든 값은 float 고정임
+
+#### Gameplay Ability
+- 실제 스킬이나 행동을 정의함
+- 문 열기, 점프 등 단순한 행동부터 복잡한 스킬까지 표현가능
+- [Gameplay Ability 개요](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/using-gameplay-abilities-in-unreal-engine)
+
+Gameplay Ability 주요 함수들:
+
+    CanActivateAbility()	- const function to see if ability is activatable. Callable by UI etc
+
+    TryActivateAbility()	- Attempts to activate the ability. Calls CanActivateAbility(). Input events can call this directly.
+                            - Also handles instancing-per-execution logic and replication/prediction calls.
+                            - UGameplayAbility 멤버 함수가 아님. UAbilitySystemComponent 멤버임
+    
+    CallActivateAbility()	- Protected, non virtual function. Does some boilerplate 'pre activate' stuff, then calls ActivateAbility()
+
+    ActivateAbility()		- What the abilities *does*. This is what child classes want to override.
+
+    CommitAbility()			- Commits reources/cooldowns etc. ActivateAbility() must call this!
+    
+    CancelAbility()			- Interrupts the ability (from an outside source).
+
+    EndAbility()			- The ability has ended. This is intended to be called by the ability to end itself.
+
+함수 호출 구조
+
+    TryActivateAbility (ASC)
+      ↓
+    CanActivateAbility 체크
+        ↓
+    CallActivateAbility
+        ↓
+    ActivateAbility (Ability 내부)
+
+#### Gameplay Effect
+- 능력이 만들어내는 효과
+- 로직은 거의 없고 Attributes처럼 데이터 위주임
+- Duration Policy를 Instant/Infinite/Has Duration 중에 고를 수 있음
+- Duration을 가지도록 설정하면 실행 기간, 주기 등을 설정하는 것이 가능 (도트뎀 디버프 구현 가능)
+- Modifiers에 어떤 Attribute를 건드릴 것인지, 어떤 Operation을 할 것인지 설정하여 Effect구현
+- 예를 들어 R1AttributeSet.Health를 Op Add로 -50을 넣어주면, 해당 Effect는 적용 대상의 HP 50을 감소시킴
+
+#### 기타 팁
+
+~키를 누르면 콘솔을 열 수 있고, 콘솔에 `showdebug abilitysystem` 명령어를 입력하면 어빌리티 시스템의 현황을 화면에서 확인할 수 있다
+
+
+`InitAbilityActorInfo` 함수를 반드시 호출해야 함. 인자는 OwnerActor, AvatarActor
+```c++
+// PossessedBy 시점에 실행할 것 (네트워크와 관련 있다고 함)
+void AR1Player::PossessedBy()
+{
+    Super::PossessedBy(NewController);
+
+    if (AR1PlayerState* PS = GetPlayerState<AR1PlayerState>())
+    {
+        AbilitySystemComponent = Cast<UR1AbilitySystemComponent>(PS->GetAbilitySystemComponent());
+        AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+    }
+}
+```
