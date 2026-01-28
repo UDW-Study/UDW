@@ -239,11 +239,11 @@ if (FindObj.Succeeded())
 
 ## UI
 
-#### `UUserWidget`
+#### UserWidget
 - 모든 UI의 부모가 되는 클래스
 - C++로 UI를 만들 때 해당 클래스를 상속받으면 됨
 
-#### `UWidgetComponent`
+#### UWidgetComponent
 - UI를 컴포넌트로 배치하고 싶을때 사용하는 클래스
 - 해당 컴포넌트의 `WidgetClass`를 원하는 UI로 설정해주면 해당 UI가 배치됨
 - `WidgetSpace`를 `World`또는 `Screen`으로 설정 가능
@@ -255,7 +255,7 @@ if (FindObj.Succeeded())
 - Designer 탭에서 UI를 편집하고 Graph 탭에서는 일반적인 블루프린트 작성
 - C++에서 `UPROPERTY(meta=(BindWidget))` 로 해놓으면, 해당 멤버 변수는 이름이 정확히 같은 UI요소와 연결됨 (없으면 오류남)
 
-##### `OnDragOver` vs `NativeOnDragOver`
+#### OnDragOver vs NativeOnDragOver
 - 전자는 블루프린트용 래퍼 함수, Native는 C++용
 - 래퍼 함수는 인자가 좀 더 단순하고 C++에서 오버라이드 할 수 없음 (가상함수가 아님)
 - `NativeOnDragOver`내부에서 `OnDragOver`를 호출하는 형태로 되어있음
@@ -273,25 +273,36 @@ if (FindObj.Succeeded())
 
 ## GAS
 
-#### `UAbilitySystemComponent` (ASC)
+#### AbilitySystemComponent (ASC)
 - GAS 중앙 관리자
 - 캐릭터에 하나씩 부착하여 사용
 
-#### `IAbilitySystemInterface`
+#### IAbilitySystemInterface
 - 액터가 GAS를 사용하게 하려면 해당 인터페이스를 구현하고 `GetAbilitySystemComponent()` 함수를 오버라이드 해야 함.
 - 해당 함수는 단순히 ASC를 리턴하는 역할
 - 플레이어의 경우에는 `PlayerState`에 실제 ASC를 넣어놓고, 캐릭터에는 참조를 넣어놨다가 위의 함수에서 리턴하도록 설계함
 - PlayerState는 서버에서 클라로 주기적으로 배포되는 액터이고, 캐릭터가 소멸되고 리스폰될때도 살아있어서 주로 사용한다고 함
 
-#### Gameplay Attributes
+### Gameplay Attributes
 - 캐릭터의 스탯
 - 모든 속성은 `FGameplayAttributeData` 클래스를 사용해야 함
 - BaseValue와 CurrentValue가 있음
 - BaseValue는 기본값, CurrentValue는 현재 활성화된 모든 이펙트를 적용한 값
 - 몇몇 매크로를 사용하면 getter와 setter를 자동 생성할 수 있음
 - 모든 값은 float 고정임
+- Owner Actor의 생성자에서 AttributeSet을 생성하면 ASC에 자동으로 등록된다고 함
 
-#### Gameplay Ability
+`PostGameplayEffectExecute` 함수로 GameplayEffect 실행후에 값 Clamp및 UI업데이트 가능
+
+AttributeSet, Character, PlayerState, PlayerController 등 수많은 클래스들이 서로의 정보가 시시각각 필요한 경우가 많음. Unity였으면 싱글톤을 사용하거나 참조 포인터를 하나하나 연결해줬겠지만, GAS에선 ASC가 확실한 중심점 역할을 해줌. ASC에는 대부분의 참조가 모두 들어있기 때문에, 일단 ASC를 얻으면 Getter로 필요한 건 대부분 얻을 수 있음.
+
+- `GetSet` 함수로 AttributeSet 획득
+- `GetAvatarActor` 함수로 아바타 액터 획득 (Character)
+- `GetOwnerActor` 함수로 오너 액터 획득 (Player의 경우 PlayerState)
+- AttributeSet에서는 `GetOwningAbilitySystemComponent`로 ASC획득 가능
+- Gameplay Ability에서는 인자로 들어오는 `ActorInfo->AbilitySystemComponent`로 ASC를 얻을 수 있음
+
+### Gameplay Ability
 - 실제 스킬이나 행동을 정의함
 - 문 열기, 점프 등 단순한 행동부터 복잡한 스킬까지 표현가능
 - [Gameplay Ability 개요](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/using-gameplay-abilities-in-unreal-engine)
@@ -322,9 +333,22 @@ Gameplay Ability 주요 함수들:
         ↓
     CallActivateAbility
         ↓
-    ActivateAbility (Ability 내부)
+    ActivateAbility (Ability 구현부)
+        ↓
+    CommitAbility (마나 사용, 쿨다운 처리)
+        ↓
+    EndAbility
 
-#### Gameplay Effect
+> CommitAbility, EndAbility는 ActivateAbility내에서 명시적 호출 필요
+
+
+Gameplay Ability의 cost 처리와 cooldown 처리
+- GA의 Costs 부분과 Cooldowns 부분에 적절한 GE를 넣어주면 `CommitAbility` 실행시 알아서 처리됨
+- AttributeSet.Mana / Op Add / Scalable Float -20로 설정한 GE를 넣어주면 어빌리티 시전시 마나 20을 소모함
+- cooldown을 위한 GE는 Duration을 설정해주면 해당 Duration이 쿨타임이 됨.
+- 이때 Components -> Grant Tags to Target Actor 부분에 태그를 하나 넣어줘야 함. (왜 필요한지는 아직 모름)
+
+### Gameplay Effect
 - 능력이 만들어내는 효과
 - 로직은 거의 없고 Attributes처럼 데이터 위주임
 - Duration Policy를 Instant/Infinite/Has Duration 중에 고를 수 있음
@@ -351,3 +375,13 @@ void AR1Player::PossessedBy()
     }
 }
 ```
+
+## 네트워크
+
+Netrole
+
+NetMode
+
+Replication
+
+RPC
