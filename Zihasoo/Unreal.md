@@ -379,7 +379,7 @@ void AR1Player::PossessedBy()
 
 ## 네트워크
 
-NetMode
+### NetMode
 - 현재 실행 중인 인스턴스가 어떤 네트워크 모드에서 동작 중인지 구분하는 값
 - `GetWorld()->GetNetMode()` 함수를 사용하면 `ENetMode` 열거형이 나옴
 
@@ -390,7 +390,7 @@ NetMode
     
 - 플레이 세팅에서 플레이어 인원수 및 NetMode 설정 가능
 
-Netrole
+### Netrole
 - 각 액터가 네트워크에서 어떤 권한을 가지는지 나타냄:
 
     - `ROLE_Authority` : 서버가 소유, 권한 있음
@@ -409,7 +409,7 @@ Replication 관련 액터 설정들
 - Replicate Movement
     - 액터의 위치를 동기화해줌
 
-Variable Replication
+### Variable Replication
 - Replicated
     - 변수를 동기화해줌
     - 클라이언트의 변경 사항은 동기화 안됨. 서버에서 클라 방향으로만 동기화됨
@@ -441,4 +441,5 @@ void AMyPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 }
 ```
 
-RPC
+### RPC
+
