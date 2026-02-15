@@ -155,6 +155,7 @@ if (FindObj.Succeeded())
     - 여러 포인트에서 그래프를 따라 애니메이션을 지정하는 에셋 (이 포인트를 sample 이라고 함)
     - 전체 애니메이션은 각 축의 입력 값을 바탕으로 그래프에 있는 포인트 사이의 블렌딩을 통해 계산됨
     - `IDLE - 걷기 - 달리기` 같은 변수에 따른 애니메이션 전환을 이 에셋 하나로 매우 간단하게 표현 가능함
+    - 프리뷰를 보고싶으면 그래프에서 ctrl을 누른 상태로 마우스를 움직이면 됨
 - 리타게팅
     - 비슷한 뼈 구조를 가졌지만 비율이 다른 캐릭터들의 애니메이션을 재사용하기 위한 시스템
     - 양쪽 캐릭터에서 같은 역할을 하는 뼈를 하나하나 매핑한 후에 애니메이션을 변환할 수 있음 (한 번만 매핑해놓으면 됨)
@@ -378,10 +379,66 @@ void AR1Player::PossessedBy()
 
 ## 네트워크
 
-Netrole
-
 NetMode
+- 현재 실행 중인 인스턴스가 어떤 네트워크 모드에서 동작 중인지 구분하는 값
+- `GetWorld()->GetNetMode()` 함수를 사용하면 `ENetMode` 열거형이 나옴
 
-Replication
+    - `NM_Standalone` : 네트워크 없이 혼자 실행
+    - `NM_ListenServer` : 서버와 클라이언트 양쪽 역할을 모두 맡음
+    - `NM_DedicatedServer` : 전용 서버
+    - `NM_Client` : 서버에 접속한 클라이언트
+    
+- 플레이 세팅에서 플레이어 인원수 및 NetMode 설정 가능
+
+Netrole
+- 각 액터가 네트워크에서 어떤 권한을 가지는지 나타냄:
+
+    - `ROLE_Authority` : 서버가 소유, 권한 있음
+    - `ROLE_AutonomousProxy` : 클라이언트에서 자신이 조종하는 Pawn
+    - `ROLE_SimulatedProxy` : 클라이언트에서 다른 유저가 조종하는 Pawn
+
+- 간단하게 HasAuthority() 함수로 서버인지 체크하고 서버에서만 실행할 코드를 작성 가능
+
+Replication 관련 액터 설정들
+- Replicates
+    - 액터를 레플리케이트할지 설정
+- Net Load on Client
+    - 켜져 있으면 클라이언트에도 해당 액터가 로드됨
+    - Replicates가 꺼져 있어도 작동함
+    - 반대로 Replicates가 켜져있으면 이 옵션이 꺼져있어도 클라이언트에 로드됨
+- Replicate Movement
+    - 액터의 위치를 동기화해줌
+
+Variable Replication
+- Replicated
+    - 변수를 동기화해줌
+    - 클라이언트의 변경 사항은 동기화 안됨. 서버에서 클라 방향으로만 동기화됨
+- RepNotify
+    - Replication을 해주고 Replication이 일어났을 때 지정된 함수를 실행해줌
+    - 이 함수에서 변수가 변경되었을 때 해야하는 처리를 추가해줄 수 있음
+    - 보통 함수 이름은 OnRep_XXX임
+    - C++에서는 변수를 수정했을 때 클라이언트에서만 OnRep함수가 실행됨 (즉 실제로 동기화가 일어난 원격에서만 실행되는 것)
+    - 블루프린트에서는 변수를 수정한 서버에서도 실행됨
+- Replication은 변수가 변경되는 즉시 일어나는것이 아니라 스케쥴링되어 일어남
+- RPC는 호출 즉시 통신하여 실행함
+
+```c++
+UPROPERTY(ReplicatedUsing = OnRep_PlayerHealth)
+int32 PlayerHealth;
+
+void AMyPlayerCharacter::OnRep_PlayerHealth()
+{
+    // PlayerHealth 변수가 업데이트 되면 실행
+    UpdateHealthBar(PlayerHealth);
+}
+
+// 이 함수를 오버라이드 해줘야한다
+void AMyPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    // DOREPLIFETIME 함수의 인자로 (해당 Class - 변수 이름)을 넣는다.
+    DOREPLIFETIME(AMyPlayerCharacter, PlayerHealth);
+}
+```
 
 RPC
