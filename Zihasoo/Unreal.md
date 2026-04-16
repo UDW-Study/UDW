@@ -1,4 +1,4 @@
-# 언리얼
+# Unreal Engine
 
 ## 단축키
 
@@ -7,6 +7,7 @@
     - Ctrl + Alt + F11: 라이브 코딩 빌드
     - Alt + S: 시뮬레이트
     - Edit -> Project Settings -> GameInstance 검색: 프로젝트의 게임인스턴스 설정 가능
+    - P: 네비게이션 범위 시각화됨
 
 * 블루프린트:
     - Ctrl + Variable D&D: Get
@@ -15,6 +16,7 @@
     - S + Left Click: 시퀀스 생성
     - F9: 중단점 생성
     - 구역 선택 + C: 주석 만들기
+    - Reroute: 링크 점프
 
 * 머티리얼 그래프:
     - 숫자 1 ~ 4 + Left Click: float 값 생성
@@ -153,8 +155,291 @@ if (FindObj.Succeeded())
     - 여러 포인트에서 그래프를 따라 애니메이션을 지정하는 에셋 (이 포인트를 sample 이라고 함)
     - 전체 애니메이션은 각 축의 입력 값을 바탕으로 그래프에 있는 포인트 사이의 블렌딩을 통해 계산됨
     - `IDLE - 걷기 - 달리기` 같은 변수에 따른 애니메이션 전환을 이 에셋 하나로 매우 간단하게 표현 가능함
+    - 프리뷰를 보고싶으면 그래프에서 ctrl을 누른 상태로 마우스를 움직이면 됨
 - 리타게팅
     - 비슷한 뼈 구조를 가졌지만 비율이 다른 캐릭터들의 애니메이션을 재사용하기 위한 시스템
     - 양쪽 캐릭터에서 같은 역할을 하는 뼈를 하나하나 매핑한 후에 애니메이션을 변환할 수 있음 (한 번만 매핑해놓으면 됨)
 - 몽타주
     - 여러 애니메이션 시퀀스를 하나의 에셋으로 결합시키는 기능 (콤보 공격 구현에 유용함)
+- Animation Notify
+    - 애니메이션 시퀀스에 동기화된 이벤트를 생성할 수 있게 해주는 기능
+    - AnimNotify를 상속받아서 Custom Notify Event를 생성할 수 있음. 필요한 정보를 실을 수 있어서 태그를 멤버로 전달하여 무슨 이벤트인지 알려주는 것이 정석임
+
+## 충돌
+
+#### Collision Responses:
+- Block
+    - OnHit 이벤트가 호출되며, 물리적으로 서로가 이동하는 경로를 막음
+    - 두 물체 모두 Block으로 설정되어야 함
+- Overlap
+    - 두 물체는 서로를 막지도 않고 무시하지도 않으며 서로 겹침. OnBeginOverlap 이벤트와 OnEndOverlap 이벤트가 호출됨
+    - 두 물체 중 하나라도 GenerateOverlapEvents 속성이 true로 설정돼 있지 않으면 이 이벤트들은 호출되지 않음
+- Ignore
+    - 두 물체에 대해 아무런 이벤트도 호출되지 않으며, 두 물체는 서로가 없는 것처럼 동작하며 서로 겹침.
+    - 둘 중 하나라도 Ignore로 설정돼있으면 서로 무시함
+
+#### Collision Enabled:
+- No Collision
+    - 충돌 사용 안함
+    - 움직이는 오브젝트에 최고의 퍼포먼스
+- Query Only
+    - 공간 쿼리(레이캐스트, 스윕, 오버랩)에만 사용됨
+    - 피지컬 시뮬레이션이 필요 없는 오브젝트와 캐릭터 무브먼트에 유용함
+- Physics Only
+    - 피직스 시뮬레이션(리지드 바디, 컨스트레인트) 전용
+    - 본 단위 탐지가 필요 없는 캐릭터의 이차 시뮬레이션 동작에 유용함
+- Collision Enabled
+    - 공간 쿼리(레이캐스트, 스윕, 오버랩)와 시뮬레이션(리지드 바디, 컨스트레인트)에 모두 사용 가능
+
+#### Channel & Preset
+- Object Channel
+    - 새로운 오브젝트 타입을 정의함
+    - 생성시 모든 Preset들에서 Collision Response를 맞춰줘야함
+    - Project/Config/DefaultEngine.ini 파일에 저장됨
+    - C++에서 사용할때는 이름이 아니라 ini파일에 저장된 채널 번호로 접근해야 함
+- Trace Channel
+    - Object Channel과 비슷한데 개념적인 상황에 사용함
+    - Sphere Trace By Channel에 사용됨 (유니티 BoxCast랑 비슷)
+    - 위의 함수 사용시에 상대가 Overlap이면 탐지 안됨. Block이어야 함
+- Preset
+    - 다양한 Object와 Trace에 대해 Collision Responses를 미리 정의해놓은 것
+
+## AI
+- BlackBoard
+    - Behavior Tree가 결정을 내리는데 사용하는 정보(상태)를 저장함
+    - Key - Value 구조로 되어있음
+    - BlackBoard의 정보를 관찰하고 있다가 변경되는 순간 실행되도록 관찰자 패턴으로 만드는 것이 가능
+
+- BlackBoard Decorator 관련 프로퍼티
+    | Notify Observer | |
+    |---------------------------|----------------------------|
+    | On Result Change | 조건이 변경될 때만 재평가 |
+    | On Value Change | 관찰된 블랙보드 키가 변경될 때 재평가 |
+
+    | Observer Aborts |    |
+    |---|---|
+    | None | 아무것도 중단하지 않음  |
+    | Self | 자신 및 이 노드 아래에서 실행 중인 모든 서브트리를 중단  |
+    | Lower Priority | 이 노드의 오른쪽에 있는 모든 노드를 중단  |
+    | Both | 자신, 이 노드 아래에서 실행 중인 모든 서브트리, 이 노드의 오른쪽에 있는 모든 노드를 중단 |
+
+- Behavior Tree
+    | 노드 | 설명 |
+    |---|---|
+    | Task | 실행할 수 있는 액션을 나타내며, 출력 연결을 갖지 않음 |
+    | Service | Composite 노드에 부착되며, 자신의 분기가 실행되는 동안에 한해 정의된 주기로 실행됨 |
+    | Decorator | 다른 노드에 부착되어 트리의 분기나 단일 노드의 실행 여부를 결정함 |
+    | Composite | 자손들의 실행 흐름을 결정함 |
+
+- Composite 노드 종류
+    | 노드 | 설명 |
+    |---|---|
+    | Selector | 자식들 중에 하나라도 성공하면 성공으로 처리되고 실행 중단 |
+    | Sequence | 자식들 중에 하나라도 실패하면 실패로 처리되고 실행 중단 |
+    | Simple Parallel | - Main Task와 Background Branch 2개의 분기만 연결 가능<br>- Main Task가 실행되는 동안 Background Branch가 병렬 실행됨<br>- Main Task에는 Task 노드만 할당 가능 |
+
+## UI
+
+#### UserWidget
+- 모든 UI의 부모가 되는 클래스
+- C++로 UI를 만들 때 해당 클래스를 상속받으면 됨
+
+#### UWidgetComponent
+- UI를 컴포넌트로 배치하고 싶을때 사용하는 클래스
+- 해당 컴포넌트의 `WidgetClass`를 원하는 UI로 설정해주면 해당 UI가 배치됨
+- `WidgetSpace`를 `World`또는 `Screen`으로 설정 가능
+- `DrawAtDesiredSize`를 켜주면 디자인한 크기대로 랜더링됨
+
+#### Widget Blueprint
+- UI에서 사용하는 블루프린트
+- 기본 부모는 `UUserWidget`
+- Designer 탭에서 UI를 편집하고 Graph 탭에서는 일반적인 블루프린트 작성
+- C++에서 `UPROPERTY(meta=(BindWidget))` 로 해놓으면, 해당 멤버 변수는 이름이 정확히 같은 UI요소와 연결됨 (없으면 오류남)
+
+#### OnDragOver vs NativeOnDragOver
+- 전자는 블루프린트용 래퍼 함수, Native는 C++용
+- 래퍼 함수는 인자가 좀 더 단순하고 C++에서 오버라이드 할 수 없음 (가상함수가 아님)
+- `NativeOnDragOver`내부에서 `OnDragOver`를 호출하는 형태로 되어있음
+- `UUserWidget`의 API 대부분이 Native와 래퍼 함수의 세트로 구성됨
+
+#### 드래그 관련 함수들
+
+|      함수      |          설명         |
+|--------------|---------------------|
+| OnDragDetected | 드래그 시작           |
+| OnDragEnter    | 위젯에 처음 들어올 때 |
+| OnDragOver     | 위에 있는 동안 계속   |
+| OnDragLeave    | 벗어날 때             |
+| OnDrop         | 드롭 시               |
+
+## GAS
+
+#### AbilitySystemComponent (ASC)
+- GAS 중앙 관리자
+- 캐릭터에 하나씩 부착하여 사용
+
+#### IAbilitySystemInterface
+- 액터가 GAS를 사용하게 하려면 해당 인터페이스를 구현하고 `GetAbilitySystemComponent()` 함수를 오버라이드 해야 함.
+- 해당 함수는 단순히 ASC를 리턴하는 역할
+- 플레이어의 경우에는 `PlayerState`에 실제 ASC를 넣어놓고, 캐릭터에는 참조를 넣어놨다가 위의 함수에서 리턴하도록 설계함
+- PlayerState는 서버에서 클라로 주기적으로 배포되는 액터이고, 캐릭터가 소멸되고 리스폰될때도 살아있어서 주로 사용한다고 함
+
+### Gameplay Attributes
+- 캐릭터의 스탯
+- 모든 속성은 `FGameplayAttributeData` 클래스를 사용해야 함
+- BaseValue와 CurrentValue가 있음
+- BaseValue는 기본값, CurrentValue는 현재 활성화된 모든 이펙트를 적용한 값
+- 몇몇 매크로를 사용하면 getter와 setter를 자동 생성할 수 있음
+- 모든 값은 float 고정임
+- Owner Actor의 생성자에서 AttributeSet을 생성하면 ASC에 자동으로 등록된다고 함
+
+`PostGameplayEffectExecute` 함수로 GameplayEffect 실행후에 값 Clamp및 UI업데이트 가능
+
+AttributeSet, Character, PlayerState, PlayerController 등 수많은 클래스들이 서로의 정보가 시시각각 필요한 경우가 많음. Unity였으면 싱글톤을 사용하거나 참조 포인터를 하나하나 연결해줬겠지만, GAS에선 ASC가 확실한 중심점 역할을 해줌. ASC에는 대부분의 참조가 모두 들어있기 때문에, 일단 ASC를 얻으면 Getter로 필요한 건 대부분 얻을 수 있음.
+
+- `GetSet` 함수로 AttributeSet 획득
+- `GetAvatarActor` 함수로 아바타 액터 획득 (Character)
+- `GetOwnerActor` 함수로 오너 액터 획득 (Player의 경우 PlayerState)
+- AttributeSet에서는 `GetOwningAbilitySystemComponent`로 ASC획득 가능
+- Gameplay Ability에서는 인자로 들어오는 `ActorInfo->AbilitySystemComponent`로 ASC를 얻을 수 있음
+
+### Gameplay Ability
+- 실제 스킬이나 행동을 정의함
+- 문 열기, 점프 등 단순한 행동부터 복잡한 스킬까지 표현가능
+- [Gameplay Ability 개요](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/using-gameplay-abilities-in-unreal-engine)
+
+Gameplay Ability 주요 함수들:
+
+    CanActivateAbility()	- const function to see if ability is activatable. Callable by UI etc
+
+    TryActivateAbility()	- Attempts to activate the ability. Calls CanActivateAbility(). Input events can call this directly.
+                            - Also handles instancing-per-execution logic and replication/prediction calls.
+                            - UGameplayAbility 멤버 함수가 아님. UAbilitySystemComponent 멤버임
+    
+    CallActivateAbility()	- Protected, non virtual function. Does some boilerplate 'pre activate' stuff, then calls ActivateAbility()
+
+    ActivateAbility()		- What the abilities *does*. This is what child classes want to override.
+
+    CommitAbility()			- Commits reources/cooldowns etc. ActivateAbility() must call this!
+    
+    CancelAbility()			- Interrupts the ability (from an outside source).
+
+    EndAbility()			- The ability has ended. This is intended to be called by the ability to end itself.
+
+함수 호출 구조
+
+    TryActivateAbility (ASC)
+      ↓
+    CanActivateAbility 체크
+        ↓
+    CallActivateAbility
+        ↓
+    ActivateAbility (Ability 구현부)
+        ↓
+    CommitAbility (마나 사용, 쿨다운 처리)
+        ↓
+    EndAbility
+
+> CommitAbility, EndAbility는 ActivateAbility내에서 명시적 호출 필요
+
+
+Gameplay Ability의 cost 처리와 cooldown 처리
+- GA의 Costs 부분과 Cooldowns 부분에 적절한 GE를 넣어주면 `CommitAbility` 실행시 알아서 처리됨
+- AttributeSet.Mana / Op Add / Scalable Float -20로 설정한 GE를 넣어주면 어빌리티 시전시 마나 20을 소모함
+- cooldown을 위한 GE는 Duration을 설정해주면 해당 Duration이 쿨타임이 됨.
+- 이때 Components -> Grant Tags to Target Actor 부분에 태그를 하나 넣어줘야 함. (왜 필요한지는 아직 모름)
+
+### Gameplay Effect
+- 능력이 만들어내는 효과
+- 로직은 거의 없고 Attributes처럼 데이터 위주임
+- Duration Policy를 Instant/Infinite/Has Duration 중에 고를 수 있음
+- Duration을 가지도록 설정하면 실행 기간, 주기 등을 설정하는 것이 가능 (도트뎀 디버프 구현 가능)
+- Modifiers에 어떤 Attribute를 건드릴 것인지, 어떤 Operation을 할 것인지 설정하여 Effect구현
+- 예를 들어 R1AttributeSet.Health를 Op Add로 -50을 넣어주면, 해당 Effect는 적용 대상의 HP 50을 감소시킴
+
+#### 기타 팁
+
+~키를 누르면 콘솔을 열 수 있고, 콘솔에 `showdebug abilitysystem` 명령어를 입력하면 어빌리티 시스템의 현황을 화면에서 확인할 수 있다
+
+
+`InitAbilityActorInfo` 함수를 반드시 호출해야 함. 인자는 OwnerActor, AvatarActor
+```c++
+// PossessedBy 시점에 실행할 것 (네트워크와 관련 있다고 함)
+void AR1Player::PossessedBy()
+{
+    Super::PossessedBy(NewController);
+
+    if (AR1PlayerState* PS = GetPlayerState<AR1PlayerState>())
+    {
+        AbilitySystemComponent = Cast<UR1AbilitySystemComponent>(PS->GetAbilitySystemComponent());
+        AbilitySystemComponent->InitAbilityActorInfo(PS, this);
+    }
+}
+```
+
+## 네트워크
+
+### NetMode
+- 현재 실행 중인 인스턴스가 어떤 네트워크 모드에서 동작 중인지 구분하는 값
+- `GetWorld()->GetNetMode()` 함수를 사용하면 `ENetMode` 열거형이 나옴
+
+    - `NM_Standalone` : 네트워크 없이 혼자 실행
+    - `NM_ListenServer` : 서버와 클라이언트 양쪽 역할을 모두 맡음
+    - `NM_DedicatedServer` : 전용 서버
+    - `NM_Client` : 서버에 접속한 클라이언트
+    
+- 플레이 세팅에서 플레이어 인원수 및 NetMode 설정 가능
+
+### Netrole
+- 각 액터가 네트워크에서 어떤 권한을 가지는지 나타냄:
+
+    - `ROLE_Authority` : 서버가 소유, 권한 있음
+    - `ROLE_AutonomousProxy` : 클라이언트에서 자신이 조종하는 Pawn
+    - `ROLE_SimulatedProxy` : 클라이언트에서 다른 유저가 조종하는 Pawn
+
+- 간단하게 HasAuthority() 함수로 서버인지 체크하고 서버에서만 실행할 코드를 작성 가능
+
+Replication 관련 액터 설정들
+- Replicates
+    - 액터를 레플리케이트할지 설정
+- Net Load on Client
+    - 켜져 있으면 클라이언트에도 해당 액터가 로드됨
+    - Replicates가 꺼져 있어도 작동함
+    - 반대로 Replicates가 켜져있으면 이 옵션이 꺼져있어도 클라이언트에 로드됨
+- Replicate Movement
+    - 액터의 위치를 동기화해줌
+
+### Variable Replication
+- Replicated
+    - 변수를 동기화해줌
+    - 클라이언트의 변경 사항은 동기화 안됨. 서버에서 클라 방향으로만 동기화됨
+- RepNotify
+    - Replication을 해주고 Replication이 일어났을 때 지정된 함수를 실행해줌
+    - 이 함수에서 변수가 변경되었을 때 해야하는 처리를 추가해줄 수 있음
+    - 보통 함수 이름은 OnRep_XXX임
+    - C++에서는 변수를 수정했을 때 클라이언트에서만 OnRep함수가 실행됨 (즉 실제로 동기화가 일어난 원격에서만 실행되는 것)
+    - 블루프린트에서는 변수를 수정한 서버에서도 실행됨
+- Replication은 변수가 변경되는 즉시 일어나는것이 아니라 스케쥴링되어 일어남
+- RPC는 호출 즉시 통신하여 실행함
+
+```c++
+UPROPERTY(ReplicatedUsing = OnRep_PlayerHealth)
+int32 PlayerHealth;
+
+void AMyPlayerCharacter::OnRep_PlayerHealth()
+{
+    // PlayerHealth 변수가 업데이트 되면 실행
+    UpdateHealthBar(PlayerHealth);
+}
+
+// 이 함수를 오버라이드 해줘야한다
+void AMyPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    // DOREPLIFETIME 함수의 인자로 (해당 Class - 변수 이름)을 넣는다.
+    DOREPLIFETIME(AMyPlayerCharacter, PlayerHealth);
+}
+```
+
+### RPC
+
