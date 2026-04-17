@@ -33,6 +33,8 @@
 
     - 시퀀서 창이 켜져 있을 때 `Shift + C`: 시퀀서 카메라로 화면 전환
 
+<br>
+
 ## 블루프린트
 
 레벨 블루프린트:
@@ -46,6 +48,7 @@
 - String: 기본적인 문자열
 - Text: 다국어 지원 가능한 문자열
 
+<br>
 
 ## 빌드
 
@@ -65,6 +68,8 @@
 - [핫 리로드와 라이브 코딩에 관한 글](https://unrealcommunity.wiki/live-compiling-in-unreal-projects-tp14jcgs)
 - [빌드 설정 관련](https://bloodstrawberry.tistory.com/1157)
 
+<br>
+
 ## 실행
 
 - 시뮬레이트를 사용하면 게임을 실행은 하되 플레이어를 조작하지 않고 원래 에디터처럼 조작이 가능
@@ -73,11 +78,15 @@
 - [플레이 및 시뮬레이션](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/playing-and-simulating-in-unreal-engine)
 
 
+<br>
+
 ## 모듈
 - 현대 언어의 모듈 시스템을 언리얼의 방식으로 구현한듯함.
 - C#을 빌드 툴로 사용하는 것 같고, 정확히 내부 원리가 어떻게 돼있는지는 알려주지 않았음. (나중에 공부해보기)
 - `[모듈이름].Target.cs`파일, `[모듈이름]`폴더, 그 폴더에 `[모듈이름].Build.cs`, `[모듈이름]Module.cpp` 을 생성해 프로젝트에 새로운 모듈 추가가능. `uproject`파일도 수정해함
 - `[모듈이름].Build.cs`파일의 `PublicDependencyModuleNames.AddRange({...})` 부분을 수정하여 종속성을 추가할 수 있음
+
+<br>
 
 ## 로그
 - UE_LOG로 로깅 가능
@@ -85,6 +94,8 @@
 - 로그 카테고리 / 로그 레벨 설정 가능
 - 자체 로그 카테고리 정의 가능
 - `UE_LOGFMT` 라는 최신 함수를 사용해 현대식 포메팅으로 로깅가능
+
+<br>
 
 ## UObject
 - 모든 언리얼 객체의 베이스 클래스
@@ -99,10 +110,14 @@
 - 가비지 콜렉션 된다고 해서 해당 멤버 변수가 nullptr를 가리키지는 않음. 그냥 쓰레기 값을 가리키게 됨 (유니티도 똑같은데 유니티는 `==`을 오버로딩해서 해결함)
 - `TWeakObjectPtr`로 이 문제를 어느 정도 해결 가능함
 
+<br>
+
 ## 게임 프레임워크
 - GameInstance: 게임 전체에서 1개의 객체를 유지할 수 있는 싱글톤 클래스. 프로젝트 설정에서 어떤 클래스를 게임 인스턴스로 정할지 설정 가능
 - GameMode: 게임 전체의 메니저 같은 클래스. 게임의 룰이나 플레이어 컨트롤 방식, UI 등 플레이와 관련된 모든 것들을 관리함.
 - 언리얼은 게임을 돌리기 위한 시스템이 이미 구조화되어 있고 이를 잘 따르기만 하면 매우 빠르게 개발이 가능함
+
+<br>
 
 ## Actor
 - `ConstructorHelpers`의 몇몇 클래스를 이용하면 에셋 경로로부터 에셋을 로드하는것이 가능함
@@ -126,16 +141,22 @@ if (FindObj.Succeeded())
 - `UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("R1ActorTag"), TArray<AActor*>());`
 - `TArray`의 `Empty()`함수는 비어있는지 확인하는 함수가 아니라 clear처럼 내용물을 비우는 함수임. 비어있는지 확인하고 싶다면 `Num()`함수를 사용해 요소의 개수를 체크할 것
 
+<br>
+
 ## Pawn & Character
 - Pawn은 Actor를 상속받은 클래스임. 빙의하여 조종하는 것이 가능함
 - Character는 Pawn을 상속받았고 Mesh, Capsule, Character Movement를 기본으로 가지고 있음.
 - 움직임은 Pawn에 바로 넣어주고, 회전은 Player Controller에 넣는것이 일반적임. 이때 저장된 회전을 여러 설정을 통해 Pawn에 다르게 적용할 수 있음. (캐릭터에만 적용 / 카메라에만 적용 등등)
 - GameplayTags라는 기능으로 에셋 관리를 편리하게 할 수 있음
 
+<br>
+
 ## 컴포넌트
 - 액터 컴포넌트는 움직임, 인벤토리, 어트리뷰트 관리 및 기타 비물리적 개념과 같은 추상적인 동작에 사용. 트랜스폼 없음
 - 씬 컴포넌트 (액터 컴포넌트의 자손)는 지오메트리 표현이 필요하지 않은 위치 기반 동작을 지원함. (예: 스프링 암, 카메라, 물리적 힘, 컨스트레인트(물리적 오브젝트는 해당 없음), 오디오 등)
 - 프리미티브 컴포넌트 (씬 컴포넌트의 자손)는 지오메트리 표현이 있는 씬 컴포넌트로, 주로 비주얼 요소 렌더링이나 물리적 오브젝트와의 충돌 또는 오버랩에 사용됨. (예: 박스, 캡슐, 구체 콜리전 볼륨, 스태틱/스켈레탈 메시, 스프라이트 또는 빌보드, 파티클 시스템)
+
+<br>
 
 ## Asset Manager
 - Data Asset:
@@ -152,6 +173,8 @@ if (FindObj.Succeeded())
     - Async Load/Unload 하는 기능을 수행함
 - [Data Asset과 Asset Manager](https://redchiken.tistory.com/358)
 - [Unreal Docs: Data Assets](https://dev.epicgames.com/documentation/ko-kr/unreal-engine/data-assets-in-unreal-engine)
+
+<br>
 
 ## 애니메이션
 - 애니메이션 블루프린트
@@ -175,6 +198,8 @@ if (FindObj.Succeeded())
 - Animation Notify
     - 애니메이션 시퀀스에 동기화된 이벤트를 생성할 수 있게 해주는 기능
     - AnimNotify를 상속받아서 Custom Notify Event를 생성할 수 있음. 필요한 정보를 실을 수 있어서 태그를 멤버로 전달하여 무슨 이벤트인지 알려주는 것이 정석임
+
+<br>
 
 ## 충돌
 
@@ -215,6 +240,8 @@ if (FindObj.Succeeded())
 - Preset
     - 다양한 Object와 Trace에 대해 Collision Responses를 미리 정의해놓은 것
 
+<br>
+
 ## AI
 - BlackBoard
     - Behavior Tree가 결정을 내리는데 사용하는 정보(상태)를 저장함
@@ -249,6 +276,8 @@ if (FindObj.Succeeded())
     | Sequence | 자식들 중에 하나라도 실패하면 실패로 처리되고 실행 중단 |
     | Simple Parallel | - Main Task와 Background Branch 2개의 분기만 연결 가능<br>- Main Task가 실행되는 동안 Background Branch가 병렬 실행됨<br>- Main Task에는 Task 노드만 할당 가능 |
 
+<br>
+
 ## UI
 
 #### UserWidget
@@ -282,6 +311,8 @@ if (FindObj.Succeeded())
 | OnDragOver     | 위에 있는 동안 계속   |
 | OnDragLeave    | 벗어날 때             |
 | OnDrop         | 드롭 시               |
+
+<br>
 
 ## GAS
 
@@ -387,6 +418,8 @@ void AR1Player::PossessedBy()
     }
 }
 ```
+
+<br>
 
 ## 네트워크
 
