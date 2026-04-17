@@ -4,26 +4,34 @@
 
 * 에디터:
     - `Ctrl + N`: 새 레벨 생성
+
     - `Ctrl + Alt + F11`: 라이브 코딩 빌드
     - `Alt + S`: 시뮬레이트
     - `P`: 네비게이션 범위 시각화됨
     - `G`: 기즈모 숨기기
+    - `마우스 임의의 버튼 + 휠`: 카메라 이동 속도 조절
 
 * 블루프린트:
     - `Ctrl + Variable D&D`: Get
     - `Alt + Variable D&D`: Set
+    
     - `B + Left Click`: 브랜치 생성
     - `S + Left Click`: 시퀀스 생성
     - `F9`: 중단점 생성
     - `구역 선택 + C`: 주석 만들기
     - `Reroute`: 링크 점프
+    - `Blueprint Edge + Left Double Click`: 변곡점 생성
 
 * 머티리얼 그래프:
     - `Num 1 ~ 4 + Left Click`: 숫자 개수의 float 값 생성
     - View에서 Shape및 View Mode등 설정 가능
 
 * 기타:
-    - Edit -> Project Settings -> GameInstance 검색: 프로젝트의 게임인스턴스 설정 가능
+    - Edit -> Project Settings   
+        -> GameInstance 검색: 프로젝트의 게임 인스턴스 설정 가능   
+        -> World 검색: 프로젝트의 기본 레벨 설정 가능
+
+    - 시퀀서 창이 켜져 있을 때 `Shift + C`: 시퀀서 카메라로 화면 전환
 
 ## 블루프린트
 
