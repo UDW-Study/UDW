@@ -87,3 +87,23 @@ SetMobility를 하고 메시를 설정한다는게 뭔가 불편해보이지만,
     - 실패해도 게임 안 죽고 nullptr 반환
     - 상황에 따라 다른 에셋 로딩 가능
     - 약간 더 느림
+
+<br>
+
+## Level Instances vs Packed Level Actor
+
+### Level Instances:
+엑터 배치를 편하게 해주는 언리얼의 프리팹
+
+- 대부분의 에셋을 결합할 수 있음
+- 레벨 인스턴스를 구성하는 각 객체가 그대로 배치됨 (최적화 없음)
+- 유니티의 프리팹에 가장 가까움
+
+### Packed Level Actor:
+렌더링에 최적화된 Level Instances의 특수 형태
+
+- 스태틱 메시만 결합 가능
+- [Instanced Static Mesh](https://dev.epicgames.com/documentation/unreal-engine/instanced-static-mesh-component-in-unreal-engine) 라는 컴포넌트를 사용해 렌더링을 최적화함
+- ISM은 원래 있는 기능인데, 이를 레벨 인스턴스와 합쳐 사용하기 쉽게 만든 것이 PLA임
+
+> [레벨 인스턴싱 참고](https://dev.epicgames.com/documentation/unreal-engine/level-instancing-in-unreal-engine)
