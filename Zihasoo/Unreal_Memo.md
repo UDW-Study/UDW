@@ -107,3 +107,36 @@ SetMobility를 하고 메시를 설정한다는게 뭔가 불편해보이지만,
 - ISM은 원래 있는 기능인데, 이를 레벨 인스턴스와 합쳐 사용하기 쉽게 만든 것이 PLA임
 
 > [레벨 인스턴싱 참고](https://dev.epicgames.com/documentation/unreal-engine/level-instancing-in-unreal-engine)
+
+<br>
+
+## Rendering 설정 (r vs sg)
+
+- 둘 다 cvar 라고 부름 (console variable)
+- `r.ShadowQuality 2` 형식으로 사용함 (ini 파일에선 `r.ShadowQuality=2`)
+
+### `r.` (Rendering 개별 옵션)
+
+렌더링 시스템의 세부 옵션을 직접 제어하는 콘솔 변수
+
+* 특정 기능 하나만 정밀하게 조절
+* 디버깅 / 성능 최적화 시 자주 사용
+* `sg.`보다 우선적으로 덮어쓰기 가능 (단, 순서 영향 있음)
+
+#### 특징
+
+* 매우 세밀한 제어 가능
+* 옵션 단위로 독립적 변경
+
+### `sg.` (Scalability Group 옵션)
+
+여러 `r.` 설정을 묶어서 품질 프리셋 형태로 관리하는 변수
+
+* Low / Medium / High / Epic 같은 그래픽 옵션과 직접 연결
+* 내부적으로 여러 `r.` 값을 자동 변경
+
+#### 특징
+
+* 한 번에 전체 품질 조절 가능
+* 유저 옵션 메뉴와 연동됨
+* 빠르게 기본 세팅 잡을 때 유용
